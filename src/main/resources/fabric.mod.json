@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "mob_health_display",
+  "version": "${version}",
+  "name": "Mob Health Display",
+  "description": "",
+  "authors": [],
+  "contact": {},
+  "license": "MIT",
+  "icon": "assets/mob_health_display/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "de.kirtilot.mobhealthdisplay.client.MobHealthDisplayClient"
+    ],
+    "main": [
+      "de.kirtilot.mobhealthdisplay.MobHealthDisplay"
+    ]
+  },
+  "mixins": [
+    "mob_health_display.mixins.json",
+    {
+      "config": "mob_health_display.client.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric-api": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}
