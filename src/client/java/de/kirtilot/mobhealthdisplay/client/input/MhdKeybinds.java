@@ -2,6 +2,7 @@ package de.kirtilot.mobhealthdisplay.client.input;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import de.kirtilot.mobhealthdisplay.client.config.MhdConfig;
+import de.kirtilot.mobhealthdisplay.client.screen.MhdConfigScreen;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.minecraft.ChatFormatting;
@@ -20,8 +21,19 @@ public final class MhdKeybinds {
     public static final KeyMapping TOGGLE = KeyMappingHelper.registerKeyMapping(new KeyMapping(
             "key.mob_health_display.toggle", InputConstants.KEY_H, CATEGORY));
 
+    // unbound by default to avoid conflicts with other mods
+    public static final KeyMapping OPEN_CONFIG = KeyMappingHelper.registerKeyMapping(new KeyMapping(
+            "key.mob_health_display.open_config", InputConstants.UNKNOWN.getValue(), CATEGORY));
+
+    private static boolean openConfigRequested;
+
     public static void register() {
         ClientTickEvents.END_CLIENT_TICK.register(MhdKeybinds::onTick);
+    }
+
+    /** Opens the settings on the next tick, so the chat screen of /mhd config can close first. */
+    public static void requestConfigScreen() {
+        openConfigRequested = true;
     }
 
     private static void onTick(Minecraft client) {
@@ -36,6 +48,15 @@ public final class MhdKeybinds {
                         : Component.literal("OFF").withStyle(ChatFormatting.RED);
                 client.player.sendOverlayMessage(Component.literal("Mob Health Display: ").append(state));
             }
+        }
+
+        while (OPEN_CONFIG.consumeClick()) {
+            openConfigRequested = true;
+        }
+
+        if (openConfigRequested) {
+            openConfigRequested = false;
+            client.gui.setScreen(new MhdConfigScreen(client.gui.screen()));
         }
     }
 }

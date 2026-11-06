@@ -14,6 +14,10 @@ import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import de.kirtilot.mobhealthdisplay.client.config.MhdSettings;
+import de.kirtilot.mobhealthdisplay.client.config.MhdSettings.BoolSetting;
+import de.kirtilot.mobhealthdisplay.client.config.MhdSettings.FloatSetting;
+import de.kirtilot.mobhealthdisplay.client.input.MhdKeybinds;
 
 import java.util.List;
 import java.util.Locale;
@@ -29,24 +33,8 @@ import static net.fabricmc.fabric.api.client.command.v2.ClientCommands.literal;
 public final class MhdCommands {
     private MhdCommands() {}
 
-    private record BoolSetting(String name, Supplier<Boolean> get, Consumer<Boolean> set) {}
-    private record FloatSetting(String name, Supplier<Float> get, Consumer<Float> set, float min, float max) {}
-
-    private static final List<BoolSetting> BOOL_SETTINGS = List.of(
-            new BoolSetting("showHearts", () -> MhdConfig.get().showHearts, v -> MhdConfig.get().showHearts = v),
-            new BoolSetting("showHostile", () -> MhdConfig.get().showHostile, v -> MhdConfig.get().showHostile = v),
-            new BoolSetting("showPassive", () -> MhdConfig.get().showPassive, v -> MhdConfig.get().showPassive = v),
-            new BoolSetting("showSelf", () -> MhdConfig.get().showSelf, v -> MhdConfig.get().showSelf = v),
-            new BoolSetting("onlyShowDamaged", () -> MhdConfig.get().onlyShowDamaged, v -> MhdConfig.get().onlyShowDamaged = v),
-            new BoolSetting("showBarCount", () -> MhdConfig.get().showBarCount, v -> MhdConfig.get().showBarCount = v),
-            new BoolSetting("blackList", () -> MhdConfig.get().blackList, v -> MhdConfig.get().blackList = v),
-            new BoolSetting("whiteList", () -> MhdConfig.get().whiteList, v -> MhdConfig.get().whiteList = v)
-    );
-
-    private static final List<FloatSetting> FLOAT_SETTINGS = List.of(
-            new FloatSetting("height", () -> MhdConfig.get().height, v -> MhdConfig.get().height = v, -5f, 5f),
-            new FloatSetting("hpPerBar", () -> MhdConfig.get().hpPerBar, v -> MhdConfig.get().hpPerBar = v, 1f, 1000f)
-    );
+    private static final List<BoolSetting> BOOL_SETTINGS = MhdSettings.BOOLEANS;
+    private static final List<FloatSetting> FLOAT_SETTINGS = MhdSettings.FLOATS;
 
     private static final SuggestionProvider<FabricClientCommandSource> ENTITY_SUGGESTIONS = (ctx, builder) ->
             suggest(BuiltInRegistries.ENTITY_TYPE.keySet().stream().map(Object::toString).sorted().toList(), builder);
@@ -80,6 +68,10 @@ public final class MhdCommands {
                         })));
             }
 
+            root.then(literal("config").executes(ctx -> {
+                MhdKeybinds.requestConfigScreen();
+                return 1;
+            }));
             dispatcher.register(root);
         });
     }
