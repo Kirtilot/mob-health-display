@@ -5,13 +5,12 @@ import de.kirtilot.mobhealthdisplay.client.config.MhiConfig;
 import de.kirtilot.mobhealthdisplay.client.filter.EntityFilter;
 import de.kirtilot.mobhealthdisplay.client.render.HealthRenderState;
 import de.kirtilot.mobhealthdisplay.client.render.HeartLayout;
-import de.kirtilot.mobhealthdisplay.client.render.HeartText;
+import de.kirtilot.mobhealthdisplay.client.render.HeartRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityAttachment;
 import net.minecraft.world.entity.LivingEntity;
@@ -28,7 +27,7 @@ public abstract class EntityRendererMixin {
     @Inject(method = "extractRenderState", at = @At("TAIL"))
     private void mhd$extract(Entity entity, EntityRenderState state, float partialTicks, CallbackInfo ci) {
         HealthRenderState hs = (HealthRenderState) state;
-        hs.mhd$setHeartText(null);
+        hs.mhd$setLayout(null);
         hs.mhd$setHeartAnchor(null);
 
         if (!(entity instanceof LivingEntity living)) return;
@@ -40,9 +39,8 @@ public abstract class EntityRendererMixin {
 
         MhiConfig cfg = MhiConfig.get();
         double extra = cfg.height + (state.nameTag != null ? 0.3 : 0.0); // move above a visible name
-        HeartLayout layout = HeartLayout.of(living.getHealth(), living.getMaxHealth(), cfg.hpPerBar);
 
-        hs.mhd$setHeartText(HeartText.of(layout, cfg.showBarCount));
+        hs.mhd$setLayout(HeartLayout.of(living.getHealth(), living.getMaxHealth(), cfg.hpPerBar));
         hs.mhd$setHeartAnchor(anchor.add(0, extra, 0));
     }
 
@@ -51,11 +49,10 @@ public abstract class EntityRendererMixin {
     private void mhd$submit(EntityRenderState state, PoseStack poseStack, SubmitNodeCollector collector,
                             CameraRenderState camera, CallbackInfo ci) {
         HealthRenderState hs = (HealthRenderState) state;
-        Component text = hs.mhd$getHeartText();
+        HeartLayout layout = hs.mhd$getLayout();
         Vec3 anchor = hs.mhd$getHeartAnchor();
-        if (text == null || anchor == null) return;
+        if (layout == null || anchor == null) return;
 
-        // false = not visible through blocks
-        collector.submitNameTag(poseStack, anchor, 0, text, false, state.lightCoords, camera);
+        HeartRenderer.submit(layout, anchor, MhiConfig.get().showBarCount, poseStack, collector, camera, state.lightCoords);
     }
 }
