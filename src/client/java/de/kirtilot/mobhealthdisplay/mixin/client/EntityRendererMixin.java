@@ -40,7 +40,7 @@ public abstract class EntityRendererMixin {
         MhdConfig cfg = MhdConfig.get();
         double extra = cfg.height + (state.nameTag != null ? 0.3 : 0.0); // move above a visible name
 
-        hs.mhd$setLayout(HeartLayout.of(living.getHealth(), living.getMaxHealth(), cfg.hpPerBar));
+        hs.mhd$setLayout(HeartLayout.of(living.getHealth(), living.getMaxHealth(), Math.round(cfg.heartRows)));
         hs.mhd$setHeartAnchor(anchor.add(0, extra, 0));
     }
 

@@ -29,7 +29,7 @@ public class MhdConfig {
 
     public boolean showBarCount = true;
     public float height = 0.0f;
-    public float hpPerBar = 20.0f;
+    public float heartRows = 1.0f;
 
     public static MhdConfig get() {
         return instance;

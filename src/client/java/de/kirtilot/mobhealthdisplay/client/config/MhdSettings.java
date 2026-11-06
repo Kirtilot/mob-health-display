@@ -9,7 +9,8 @@ public final class MhdSettings {
     private MhdSettings() {}
 
     public record BoolSetting(String name, String label, Supplier<Boolean> get, Consumer<Boolean> set) {}
-    public record FloatSetting(String name, String label, Supplier<Float> get, Consumer<Float> set, float min, float max) {}
+    public record FloatSetting(String name, String label, Supplier<Float> get, Consumer<Float> set,
+                               float min, float max, float step) {}
 
     public static final List<BoolSetting> BOOLEANS = List.of(
             new BoolSetting("showHearts", "Show Hearts", () -> MhdConfig.get().showHearts, v -> MhdConfig.get().showHearts = v),
@@ -23,7 +24,7 @@ public final class MhdSettings {
     );
 
     public static final List<FloatSetting> FLOATS = List.of(
-            new FloatSetting("height", "Height Offset", () -> MhdConfig.get().height, v -> MhdConfig.get().height = v, -5f, 5f),
-            new FloatSetting("hpPerBar", "HP per Bar", () -> MhdConfig.get().hpPerBar, v -> MhdConfig.get().hpPerBar = v, 1f, 1000f)
+            new FloatSetting("height", "Height Offset", () -> MhdConfig.get().height, v -> MhdConfig.get().height = v, -2f, 2f, 0.05f),
+            new FloatSetting("heartRows", "Heart Rows", () -> MhdConfig.get().heartRows, v -> MhdConfig.get().heartRows = v, 1f, 5f, 1f)
     );
 }

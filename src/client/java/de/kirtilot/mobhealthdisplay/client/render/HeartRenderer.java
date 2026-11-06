@@ -12,7 +12,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 
-/** Draws the heart bar as textured quads facing the camera. */
+/** Draws the heart rows as textured quads facing the camera, growing upwards like the player HUD. */
 public final class HeartRenderer {
     private static final Identifier CONTAINER = Identifier.withDefaultNamespace("textures/gui/sprites/hud/heart/container.png");
     private static final Identifier FULL = Identifier.withDefaultNamespace("textures/gui/sprites/hud/heart/full.png");
@@ -21,16 +21,31 @@ public final class HeartRenderer {
     private static final float SCALE = 0.025f;       // same scale as name tags
     private static final int HEART_SIZE = 9;         // heart texture is 9x9 pixels
     private static final int HEART_STEP = 8;         // hearts overlap by 1 pixel, like the vanilla HUD
+    private static final int ROW_STEP = 10;          // vertical distance between heart rows
     private static final int COUNT_LINE = 10;        // height of the "x5" line below the hearts
     private static final double BOTTOM_LIFT = 0.3;   // fixed gap between the name tag point and the lower edge
     private static final float LAYER_OFFSET = 0.01f; // draws hearts in front of the containers
 
     private HeartRenderer() {}
 
+    /** Position of each heart slot: index 0 is bottom left, rows stack upwards. */
+    private record Grid(float left, int top, int rows) {
+        float x(int index) {
+            return left + (index % HeartLayout.HEARTS_PER_ROW) * HEART_STEP;
+        }
+
+        float y(int index) {
+            return top + (rows - 1 - index / HeartLayout.HEARTS_PER_ROW) * ROW_STEP;
+        }
+    }
+
     public static void submit(HeartLayout layout, Vec3 anchor, boolean showBarCount, PoseStack poseStack,
                               SubmitNodeCollector collector, CameraRenderState camera, int light) {
         boolean showCount = showBarCount && layout.barCount() > 1;
-        int totalHeight = HEART_SIZE + (showCount ? COUNT_LINE : 0);
+        int rows = layout.rowCount();
+        int columns = Math.min(layout.totalSlots(), HeartLayout.HEARTS_PER_ROW);
+        int heartsHeight = (rows - 1) * ROW_STEP + HEART_SIZE;
+        int totalHeight = heartsHeight + (showCount ? COUNT_LINE : 0);
 
         poseStack.pushPose();
         // the lower edge stays fixed, everything is built upwards from there
@@ -39,19 +54,18 @@ public final class HeartRenderer {
         poseStack.scale(SCALE, -SCALE, SCALE);
 
         int top = -totalHeight; // y grows downwards here, so negative values are above the lower edge
-        int slots = layout.totalSlots();
-        float left = -(slots * HEART_STEP + 1) / 2f; // centered above the mob
+        Grid grid = new Grid(-(columns * HEART_STEP + 1) / 2f, top, rows);
 
-        submitIcons(collector, poseStack, CONTAINER, left, top, slots, 0f, light);
-        submitIcons(collector, poseStack, FULL, left, top, layout.fullHearts(), LAYER_OFFSET, light);
+        submitIcons(collector, poseStack, CONTAINER, grid, 0, layout.totalSlots(), 0f, light);
+        submitIcons(collector, poseStack, FULL, grid, 0, layout.fullHearts(), LAYER_OFFSET, light);
         if (layout.halfHeart()) {
-            submitIcons(collector, poseStack, HALF, left + layout.fullHearts() * HEART_STEP, top, 1, LAYER_OFFSET, light);
+            submitIcons(collector, poseStack, HALF, grid, layout.fullHearts(), 1, LAYER_OFFSET, light);
         }
 
         if (showCount) {
             Font font = Minecraft.getInstance().font;
             String text = "x" + layout.barCount();
-            collector.submitText(poseStack, -font.width(text) / 2f, top + HEART_SIZE + 1,
+            collector.submitText(poseStack, -font.width(text) / 2f, top + heartsHeight + 1,
                     Component.literal(text).getVisualOrderText(), false, Font.DisplayMode.NORMAL,
                     light, 0xFFFFFFFF, 0, 0);
         }
@@ -60,12 +74,13 @@ public final class HeartRenderer {
     }
 
     private static void submitIcons(SubmitNodeCollector collector, PoseStack poseStack, Identifier texture,
-                                    float startX, float y, int count, float z, int light) {
+                                    Grid grid, int from, int count, float z, int light) {
         if (count <= 0) return;
         collector.submitCustomGeometry(poseStack, RenderTypes.text(texture), (pose, buffer) -> {
-            for (int i = 0; i < count; i++) {
-                float x0 = startX + i * HEART_STEP;
-                quad(buffer, pose, x0, y, x0 + HEART_SIZE, y + HEART_SIZE, z, light);
+            for (int i = from; i < from + count; i++) {
+                float x0 = grid.x(i);
+                float y0 = grid.y(i);
+                quad(buffer, pose, x0, y0, x0 + HEART_SIZE, y0 + HEART_SIZE, z, light);
             }
         });
     }
