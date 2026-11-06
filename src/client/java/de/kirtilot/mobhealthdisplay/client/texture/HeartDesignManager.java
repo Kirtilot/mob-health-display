@@ -74,16 +74,32 @@ public final class HeartDesignManager {
         });
     }
 
+    /** The design an entity in the world gets. */
     public static HeartDesign get(LivingEntity entity) {
         String id = BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()).toString();
         String category = EntityCategory.of(entity).name().toLowerCase(Locale.ROOT);
+        return design(resolve(id, category));
+    }
 
-        String name = firstAvailable(
-                DesignOverrides.entities().get(id),
-                ENTITIES.get(id),
+    /** Name of the design for an entity id in the given category (full order, see class comment). */
+    public static String resolve(String entityId, String category) {
+        return firstAvailable(
+                DesignOverrides.entities().get(entityId),
+                ENTITIES.get(entityId),
                 DesignOverrides.categories().get(category),
                 CATEGORIES.get(category),
                 defaultDesign);
+    }
+
+    /** Name of the design a whole category gets (ignores single-entity entries). */
+    public static String resolveCategory(String category) {
+        return firstAvailable(
+                DesignOverrides.categories().get(category),
+                CATEGORIES.get(category),
+                defaultDesign);
+    }
+
+    public static HeartDesign design(String name) {
         return DESIGNS.computeIfAbsent(name, HeartDesign::named);
     }
 
