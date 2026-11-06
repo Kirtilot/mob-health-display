@@ -9,8 +9,10 @@ public final class MhdSettings {
     private MhdSettings() {}
 
     public record BoolSetting(String name, String label, Supplier<Boolean> get, Consumer<Boolean> set) {}
+
+    /** zeroLabel: text shown instead of "0" (e.g. "Off"), or null for a plain number. */
     public record FloatSetting(String name, String label, Supplier<Float> get, Consumer<Float> set,
-                               float min, float max, float step) {}
+                               float min, float max, float step, String zeroLabel) {}
 
     public static final List<BoolSetting> BOOLEANS = List.of(
             new BoolSetting("showHearts", "Show Hearts", () -> MhdConfig.get().showHearts, v -> MhdConfig.get().showHearts = v),
@@ -24,7 +26,8 @@ public final class MhdSettings {
     );
 
     public static final List<FloatSetting> FLOATS = List.of(
-            new FloatSetting("height", "Height Offset", () -> MhdConfig.get().height, v -> MhdConfig.get().height = v, -2f, 2f, 0.05f),
-            new FloatSetting("heartRows", "Heart Rows", () -> MhdConfig.get().heartRows, v -> MhdConfig.get().heartRows = v, 1f, 5f, 1f)
+            new FloatSetting("height", "Height Offset", () -> MhdConfig.get().height, v -> MhdConfig.get().height = v, -2f, 2f, 0.05f, null),
+            new FloatSetting("heartRows", "Heart Rows", () -> MhdConfig.get().heartRows, v -> MhdConfig.get().heartRows = v, 1f, 5f, 1f, null),
+            new FloatSetting("hideAfterSeconds", "Hide After (s)", () -> MhdConfig.get().hideAfterSeconds, v -> MhdConfig.get().hideAfterSeconds = v, 0f, 60f, 1f, "Off")
     );
 }

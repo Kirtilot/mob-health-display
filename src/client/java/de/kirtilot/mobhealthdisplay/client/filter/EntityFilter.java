@@ -19,6 +19,8 @@ public class EntityFilter {
     private static final Map<EntityType<?>, Boolean> HAS_HEALTH = new HashMap<>();
 
     public static boolean shouldShow(LivingEntity entity, Entity viewer) {
+        DamageTracker.update(entity); // always track, even if hidden right now
+
         MhdConfig cfg = MhdConfig.get();
         if (!cfg.showHearts || !entity.isAlive()) return false;
 
@@ -32,6 +34,7 @@ public class EntityFilter {
         }
 
         if (cfg.onlyShowDamaged && entity.getHealth() >= entity.getMaxHealth()) return false;
+        if (cfg.hideAfterSeconds > 0 && !DamageTracker.damagedWithin(entity, cfg.hideAfterSeconds)) return false;
 
         String id = BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()).toString();
         if (cfg.whiteList && !cfg.whiteListEntries.contains(id)) return false;

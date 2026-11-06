@@ -10,22 +10,28 @@ import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.world.entity.LivingEntity;
 
 import java.io.Reader;
-import java.util.EnumMap;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
- * Reads assets/mob_health_display/designs.json from the active resource packs
- * and decides which design an entity gets: single entity -> category -> default.
+ * Decides which design an entity gets. Order:
+ * player's entity override -> pack entity -> player's category override -> pack category -> pack default.
+ * Designs that are not available right now (e.g. pack disabled) are skipped.
  */
 public final class HeartDesignManager {
-    private static final Identifier FILE = Identifier.fromNamespaceAndPath("mob_health_display", "designs.json");
+    private static final String MOD_ID = "mob_health_display";
+    private static final Identifier FILE = Identifier.fromNamespaceAndPath(MOD_ID, "designs.json");
+    private static final String DESIGN_FOLDER = "textures/designs/";
 
     private static String defaultDesign = HeartDesign.VANILLA_NAME;
-    private static final Map<EntityCategory, String> CATEGORIES = new EnumMap<>(EntityCategory.class);
+    private static final Map<String, String> CATEGORIES = new HashMap<>(); // key: category name in lower case
     private static final Map<String, String> ENTITIES = new HashMap<>();
     private static final Map<String, HeartDesign> DESIGNS = new HashMap<>();
+    private static final Set<String> AVAILABLE = new TreeSet<>();
 
     private HeartDesignManager() {}
 
@@ -35,6 +41,15 @@ public final class HeartDesignManager {
         CATEGORIES.clear();
         ENTITIES.clear();
         DESIGNS.clear();
+        AVAILABLE.clear();
+        AVAILABLE.add(HeartDesign.VANILLA_NAME);
+
+        // every folder textures/designs/<name>/ that contains a full.png is an available design
+        manager.listResources("textures/designs", id -> id.getPath().endsWith("/full.png")).keySet().forEach(id -> {
+            if (!id.getNamespace().equals(MOD_ID)) return;
+            String path = id.getPath();
+            AVAILABLE.add(path.substring(DESIGN_FOLDER.length(), path.length() - "/full.png".length()));
+        });
 
         manager.getResource(FILE).ifPresent(resource -> {
             try (Reader reader = resource.openAsReader()) {
@@ -45,11 +60,7 @@ public final class HeartDesignManager {
                 }
                 if (root.has("categories")) {
                     for (Map.Entry<String, JsonElement> e : root.getAsJsonObject("categories").entrySet()) {
-                        try {
-                            CATEGORIES.put(EntityCategory.valueOf(e.getKey().toUpperCase(Locale.ROOT)), e.getValue().getAsString());
-                        } catch (IllegalArgumentException unknownCategory) {
-                            System.err.println("[MobHealthDisplay] Unknown category in designs.json: " + e.getKey());
-                        }
+                        CATEGORIES.put(e.getKey().toLowerCase(Locale.ROOT), e.getValue().getAsString());
                     }
                 }
                 if (root.has("entities")) {
@@ -65,9 +76,30 @@ public final class HeartDesignManager {
 
     public static HeartDesign get(LivingEntity entity) {
         String id = BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()).toString();
-        String name = ENTITIES.get(id);
-        if (name == null) name = CATEGORIES.get(EntityCategory.of(entity));
-        if (name == null) name = defaultDesign;
+        String category = EntityCategory.of(entity).name().toLowerCase(Locale.ROOT);
+
+        String name = firstAvailable(
+                DesignOverrides.entities().get(id),
+                ENTITIES.get(id),
+                DesignOverrides.categories().get(category),
+                CATEGORIES.get(category),
+                defaultDesign);
         return DESIGNS.computeIfAbsent(name, HeartDesign::named);
+    }
+
+    private static String firstAvailable(String... candidates) {
+        for (String candidate : candidates) {
+            if (candidate != null && AVAILABLE.contains(candidate)) return candidate;
+        }
+        return HeartDesign.VANILLA_NAME;
+    }
+
+    /** All designs found in the active resource packs, plus "vanilla". */
+    public static Set<String> availableDesigns() {
+        return Collections.unmodifiableSet(AVAILABLE);
+    }
+
+    public static boolean isDesign(String name) {
+        return AVAILABLE.contains(name);
     }
 }

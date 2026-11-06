@@ -12,6 +12,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
+import de.kirtilot.mobhealthdisplay.client.texture.DesignOverrides;
 
 public class MobHealthDisplayClient implements ClientModInitializer {
     public static final String MOD_ID = "mob_health_display";
@@ -19,6 +20,7 @@ public class MobHealthDisplayClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         MhdConfig.load();
+        DesignOverrides.load();
         MhdCommands.register();
         MhdKeybinds.register();
 

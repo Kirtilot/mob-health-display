@@ -30,6 +30,7 @@ public class MhdConfig {
     public boolean showBarCount = true;
     public float height = 0.0f;
     public float heartRows = 1.0f;
+    public float hideAfterSeconds = 0.0f; // 0 = never hide
 
     public static MhdConfig get() {
         return instance;

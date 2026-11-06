@@ -1,0 +1,14 @@
+{
+  "default": "vanilla",
+  "categories": {
+    "player": "vanilla",
+    "undead": "undead",
+    "hostile": "hostile",
+    "passive": "passive",
+    "tamed": "tamed",
+    "boss": "boss"
+  },
+  "entities": {
+    "minecraft:warden": "warden"
+  }
+}

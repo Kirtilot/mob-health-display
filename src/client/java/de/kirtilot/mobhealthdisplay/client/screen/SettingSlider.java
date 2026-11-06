@@ -28,7 +28,14 @@ public class SettingSlider extends AbstractSliderButton {
     @Override
     protected void updateMessage() {
         float v = currentValue();
-        String text = setting.step() >= 1f ? String.valueOf(Math.round(v)) : String.format(Locale.ROOT, "%.2f", v);
+        String text;
+        if (setting.zeroLabel() != null && v == 0f) {
+            text = setting.zeroLabel();
+        } else if (setting.step() >= 1f) {
+            text = String.valueOf(Math.round(v));
+        } else {
+            text = String.format(Locale.ROOT, "%.2f", v);
+        }
         setMessage(Component.literal(setting.label() + ": " + text));
     }
 
