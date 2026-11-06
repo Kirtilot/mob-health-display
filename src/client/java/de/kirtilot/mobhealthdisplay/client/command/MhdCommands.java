@@ -9,22 +9,21 @@ import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import de.kirtilot.mobhealthdisplay.client.config.MhdConfig;
+import de.kirtilot.mobhealthdisplay.client.config.MhdSettings;
+import de.kirtilot.mobhealthdisplay.client.config.MhdSettings.BoolSetting;
+import de.kirtilot.mobhealthdisplay.client.config.MhdSettings.FloatSetting;
+import de.kirtilot.mobhealthdisplay.client.filter.EntityFilter;
+import de.kirtilot.mobhealthdisplay.client.input.MhdKeybinds;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import de.kirtilot.mobhealthdisplay.client.config.MhdSettings;
-import de.kirtilot.mobhealthdisplay.client.config.MhdSettings.BoolSetting;
-import de.kirtilot.mobhealthdisplay.client.config.MhdSettings.FloatSetting;
-import de.kirtilot.mobhealthdisplay.client.input.MhdKeybinds;
 
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 import static net.fabricmc.fabric.api.client.command.v2.ClientCommands.argument;
 import static net.fabricmc.fabric.api.client.command.v2.ClientCommands.literal;
@@ -36,8 +35,13 @@ public final class MhdCommands {
     private static final List<BoolSetting> BOOL_SETTINGS = MhdSettings.BOOLEANS;
     private static final List<FloatSetting> FLOAT_SETTINGS = MhdSettings.FLOATS;
 
+    /** Only entity types that have health (no boats, arrows, items, ...). */
     private static final SuggestionProvider<FabricClientCommandSource> ENTITY_SUGGESTIONS = (ctx, builder) ->
-            suggest(BuiltInRegistries.ENTITY_TYPE.keySet().stream().map(Object::toString).sorted().toList(), builder);
+            suggest(BuiltInRegistries.ENTITY_TYPE.stream()
+                    .filter(EntityFilter::hasHealth)
+                    .map(type -> BuiltInRegistries.ENTITY_TYPE.getKey(type).toString())
+                    .sorted()
+                    .toList(), builder);
 
     public static void register() {
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
@@ -72,6 +76,7 @@ public final class MhdCommands {
                 MhdKeybinds.requestConfigScreen();
                 return 1;
             }));
+
             dispatcher.register(root);
         });
     }
