@@ -1,7 +1,7 @@
 package de.kirtilot.mobhealthdisplay.mixin.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import de.kirtilot.mobhealthdisplay.client.config.MhiConfig;
+import de.kirtilot.mobhealthdisplay.client.config.MhdConfig;
 import de.kirtilot.mobhealthdisplay.client.filter.EntityFilter;
 import de.kirtilot.mobhealthdisplay.client.render.HealthRenderState;
 import de.kirtilot.mobhealthdisplay.client.render.HeartLayout;
@@ -37,7 +37,7 @@ public abstract class EntityRendererMixin {
         Vec3 anchor = entity.getAttachments().getNullable(EntityAttachment.NAME_TAG, 0, entity.getYRot(partialTicks));
         if (anchor == null) return;
 
-        MhiConfig cfg = MhiConfig.get();
+        MhdConfig cfg = MhdConfig.get();
         double extra = cfg.height + (state.nameTag != null ? 0.3 : 0.0); // move above a visible name
 
         hs.mhd$setLayout(HeartLayout.of(living.getHealth(), living.getMaxHealth(), cfg.hpPerBar));
@@ -53,6 +53,6 @@ public abstract class EntityRendererMixin {
         Vec3 anchor = hs.mhd$getHeartAnchor();
         if (layout == null || anchor == null) return;
 
-        HeartRenderer.submit(layout, anchor, MhiConfig.get().showBarCount, poseStack, collector, camera, state.lightCoords);
+        HeartRenderer.submit(layout, anchor, MhdConfig.get().showBarCount, poseStack, collector, camera, state.lightCoords);
     }
 }

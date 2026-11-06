@@ -1,6 +1,6 @@
 package de.kirtilot.mobhealthdisplay.client.filter;
 
-import de.kirtilot.mobhealthdisplay.client.config.MhiConfig;
+import de.kirtilot.mobhealthdisplay.client.config.MhdConfig;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -8,7 +8,7 @@ import net.minecraft.world.entity.LivingEntity;
 public class EntityFilter {
 
     public static boolean shouldShow(LivingEntity entity, Entity viewer) {
-        MhiConfig cfg = MhiConfig.get();
+        MhdConfig cfg = MhdConfig.get();
         if (!cfg.showHearts || !entity.isAlive()) return false;
 
         if (entity == viewer) {

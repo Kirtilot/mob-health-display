@@ -10,11 +10,11 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MhiConfig {
+public class MhdConfig {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final Path PATH =
             FabricLoader.getInstance().getConfigDir().resolve("mob_health_display.json");
-    private static MhiConfig instance = new MhiConfig();
+    private static MhdConfig instance = new MhdConfig();
 
     public boolean showHearts = true;
     public boolean showHostile = true;
@@ -31,14 +31,14 @@ public class MhiConfig {
     public float height = 0.0f;
     public float hpPerBar = 20.0f;
 
-    public static MhiConfig get() {
+    public static MhdConfig get() {
         return instance;
     }
 
     public static void load() {
         if (Files.exists(PATH)) {
             try {
-                MhiConfig loaded = GSON.fromJson(Files.readString(PATH), MhiConfig.class);
+                MhdConfig loaded = GSON.fromJson(Files.readString(PATH), MhdConfig.class);
                 if (loaded != null) instance = loaded;
             } catch (Exception e) {
                 System.err.println("[MobHealthDisplay] Could not read config, using defaults: " + e);
