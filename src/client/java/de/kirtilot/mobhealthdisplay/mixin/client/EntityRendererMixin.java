@@ -6,6 +6,8 @@ import de.kirtilot.mobhealthdisplay.client.filter.EntityFilter;
 import de.kirtilot.mobhealthdisplay.client.render.HealthRenderState;
 import de.kirtilot.mobhealthdisplay.client.render.HeartLayout;
 import de.kirtilot.mobhealthdisplay.client.render.HeartRenderer;
+import de.kirtilot.mobhealthdisplay.client.texture.HeartDesign;
+import de.kirtilot.mobhealthdisplay.client.texture.HeartDesignManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRenderer;
@@ -23,12 +25,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(EntityRenderer.class)
 public abstract class EntityRendererMixin {
 
-    // Phase 1: collect data (health, filter result, position)
+    // Phase 1: collect data (health, filter result, position, design)
     @Inject(method = "extractRenderState", at = @At("TAIL"))
     private void mhd$extract(Entity entity, EntityRenderState state, float partialTicks, CallbackInfo ci) {
         HealthRenderState hs = (HealthRenderState) state;
         hs.mhd$setLayout(null);
         hs.mhd$setHeartAnchor(null);
+        hs.mhd$setDesign(null);
 
         if (!(entity instanceof LivingEntity living)) return;
         if (living.isInvisible()) return;
@@ -42,6 +45,7 @@ public abstract class EntityRendererMixin {
 
         hs.mhd$setLayout(HeartLayout.of(living.getHealth(), living.getMaxHealth(), Math.round(cfg.heartRows)));
         hs.mhd$setHeartAnchor(anchor.add(0, extra, 0));
+        hs.mhd$setDesign(HeartDesignManager.get(living));
     }
 
     // Phase 2: draw
@@ -51,8 +55,9 @@ public abstract class EntityRendererMixin {
         HealthRenderState hs = (HealthRenderState) state;
         HeartLayout layout = hs.mhd$getLayout();
         Vec3 anchor = hs.mhd$getHeartAnchor();
-        if (layout == null || anchor == null) return;
+        HeartDesign design = hs.mhd$getDesign();
+        if (layout == null || anchor == null || design == null) return;
 
-        HeartRenderer.submit(layout, anchor, MhdConfig.get().showBarCount, poseStack, collector, camera, state.lightCoords);
+        HeartRenderer.submit(layout, design, anchor, MhdConfig.get().showBarCount, poseStack, collector, camera, state.lightCoords);
     }
 }

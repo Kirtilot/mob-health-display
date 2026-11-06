@@ -8,13 +8,22 @@ import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
 
+import java.util.Set;
+
 public enum EntityCategory {
     PLAYER, BOSS, TAMED, UNDEAD, HOSTILE, PASSIVE;
+
+    /** Vanilla mobs that count as bosses. */
+    private static final Set<EntityType<?>> BOSSES = Set.of(
+            EntityTypes.WITHER,
+            EntityTypes.ENDER_DRAGON,
+            EntityTypes.ELDER_GUARDIAN
+    );
 
     public static EntityCategory of(LivingEntity entity) {
         if (entity instanceof Player) return PLAYER;
         EntityType<?> type = entity.getType();
-        if (type == EntityTypes.WITHER || type == EntityTypes.ENDER_DRAGON) return BOSS;
+        if (BOSSES.contains(type)) return BOSS;
         if (entity instanceof TamableAnimal pet && pet.isTame()) return TAMED;
         if (entity.is(EntityTypeTags.UNDEAD)) return UNDEAD;
         if (entity instanceof Enemy) return HOSTILE;

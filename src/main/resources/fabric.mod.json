@@ -3,8 +3,8 @@
   "id": "mob_health_display",
   "version": "${version}",
   "name": "Mob Health Display",
-  "description": "",
-  "authors": [],
+  "description": "Shows a heart bar above mobs, just like the player's own health bar.",
+  "authors": ["Kirtilot"],
   "contact": {},
   "license": "MIT",
   "icon": "assets/mob_health_display/icon.png",
@@ -15,6 +15,9 @@
     ],
     "main": [
       "de.kirtilot.mobhealthdisplay.MobHealthDisplay"
+    ],
+    "modmenu": [
+      "de.kirtilot.mobhealthdisplay.client.compat.MhdModMenu"
     ]
   },
   "mixins": [
@@ -28,5 +31,8 @@
     "fabricloader": ">=${loader_version}",
     "fabric-api": "*",
     "minecraft": "${minecraft_version}"
+  },
+  "suggests": {
+    "modmenu": "*"
   }
 }

@@ -2,6 +2,7 @@ package de.kirtilot.mobhealthdisplay.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import de.kirtilot.mobhealthdisplay.client.texture.HeartDesign;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.SubmitNodeCollector;
@@ -14,10 +15,6 @@ import org.joml.Matrix4f;
 
 /** Draws the heart rows as textured quads facing the camera, growing upwards like the player HUD. */
 public final class HeartRenderer {
-    private static final Identifier CONTAINER = Identifier.withDefaultNamespace("textures/gui/sprites/hud/heart/container.png");
-    private static final Identifier FULL = Identifier.withDefaultNamespace("textures/gui/sprites/hud/heart/full.png");
-    private static final Identifier HALF = Identifier.withDefaultNamespace("textures/gui/sprites/hud/heart/half.png");
-
     private static final float SCALE = 0.025f;       // same scale as name tags
     private static final int HEART_SIZE = 9;         // heart texture is 9x9 pixels
     private static final int HEART_STEP = 8;         // hearts overlap by 1 pixel, like the vanilla HUD
@@ -39,7 +36,7 @@ public final class HeartRenderer {
         }
     }
 
-    public static void submit(HeartLayout layout, Vec3 anchor, boolean showBarCount, PoseStack poseStack,
+    public static void submit(HeartLayout layout, HeartDesign design, Vec3 anchor, boolean showBarCount, PoseStack poseStack,
                               SubmitNodeCollector collector, CameraRenderState camera, int light) {
         boolean showCount = showBarCount && layout.barCount() > 1;
         int rows = layout.rowCount();
@@ -56,10 +53,10 @@ public final class HeartRenderer {
         int top = -totalHeight; // y grows downwards here, so negative values are above the lower edge
         Grid grid = new Grid(-(columns * HEART_STEP + 1) / 2f, top, rows);
 
-        submitIcons(collector, poseStack, CONTAINER, grid, 0, layout.totalSlots(), 0f, light);
-        submitIcons(collector, poseStack, FULL, grid, 0, layout.fullHearts(), LAYER_OFFSET, light);
+        submitIcons(collector, poseStack, design.container(), grid, 0, layout.totalSlots(), 0f, light);
+        submitIcons(collector, poseStack, design.full(), grid, 0, layout.fullHearts(), LAYER_OFFSET, light);
         if (layout.halfHeart()) {
-            submitIcons(collector, poseStack, HALF, grid, layout.fullHearts(), 1, LAYER_OFFSET, light);
+            submitIcons(collector, poseStack, design.half(), grid, layout.fullHearts(), 1, LAYER_OFFSET, light);
         }
 
         if (showCount) {
