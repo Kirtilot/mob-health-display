@@ -12,6 +12,7 @@ import net.minecraft.world.entity.LivingEntity;
 import java.io.Reader;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -32,6 +33,7 @@ public final class HeartDesignManager {
     private static final Map<String, String> ENTITIES = new HashMap<>();
     private static final Map<String, HeartDesign> DESIGNS = new HashMap<>();
     private static final Set<String> AVAILABLE = new TreeSet<>();
+    private static final Set<String> DIVIDERS = new HashSet<>(); // designs that have a divider.png
 
     private HeartDesignManager() {}
 
@@ -42,13 +44,22 @@ public final class HeartDesignManager {
         ENTITIES.clear();
         DESIGNS.clear();
         AVAILABLE.clear();
+        DIVIDERS.clear();
         AVAILABLE.add(HeartDesign.VANILLA_NAME);
 
-        // every folder textures/designs/<name>/ that contains a full.png is an available design
-        manager.listResources("textures/designs", id -> id.getPath().endsWith("/full.png")).keySet().forEach(id -> {
+        // textures/designs/<name>/full.png    -> <name> is an available design
+        // textures/designs/<name>/divider.png -> <name> has divider lines
+        manager.listResources("textures/designs",
+                id -> id.getPath().endsWith("/full.png") || id.getPath().endsWith("/divider.png")
+        ).keySet().forEach(id -> {
             if (!id.getNamespace().equals(MOD_ID)) return;
             String path = id.getPath();
-            AVAILABLE.add(path.substring(DESIGN_FOLDER.length(), path.length() - "/full.png".length()));
+            String name = path.substring(DESIGN_FOLDER.length(), path.lastIndexOf('/'));
+            if (path.endsWith("/full.png")) {
+                AVAILABLE.add(name);
+            } else {
+                DIVIDERS.add(name);
+            }
         });
 
         manager.getResource(FILE).ifPresent(resource -> {
@@ -100,7 +111,7 @@ public final class HeartDesignManager {
     }
 
     public static HeartDesign design(String name) {
-        return DESIGNS.computeIfAbsent(name, HeartDesign::named);
+        return DESIGNS.computeIfAbsent(name, n -> HeartDesign.named(n, DIVIDERS.contains(n)));
     }
 
     private static String firstAvailable(String... candidates) {

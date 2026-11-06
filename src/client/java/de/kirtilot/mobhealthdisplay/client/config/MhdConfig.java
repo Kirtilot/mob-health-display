@@ -28,9 +28,12 @@ public class MhdConfig {
     public List<String> whiteListEntries = new ArrayList<>();
 
     public boolean showBarCount = true;
+    public boolean showCountPrefix = false; // "x5" instead of "5"
+    public boolean showDividers = true;     // lines left and right of the count
     public float height = 0.0f;
     public float heartRows = 1.0f;
     public float hideAfterSeconds = 0.0f; // 0 = never hide
+    public float maxRange = 0.0f; // 0 = unlimited
 
     public static MhdConfig get() {
         return instance;

@@ -8,6 +8,7 @@ import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 
 import java.util.HashMap;
@@ -25,14 +26,23 @@ public class EntityFilter {
 
         MhdConfig cfg = MhdConfig.get();
         if (!cfg.showHearts || !entity.isAlive()) return false;
+        if (Minecraft.getInstance().gui.hud.isHidden()) return false; // F1
 
-        if (entity == viewer) {
+        boolean self = entity == viewer;
+        if (self) {
             if (!cfg.showSelf) return false;
         } else {
+            // other players: hidden while sneaking, in spectator or in creative (they take no damage)
+            if (entity.isDiscrete()) return false;
+            if (entity instanceof Player player && (player.isSpectator() || player.isCreative())) return false;
+
             EntityCategory category = EntityCategory.of(entity);
             if (category.isHostileGroup() && !cfg.showHostile) return false;
             if ((category == EntityCategory.PASSIVE || category == EntityCategory.TAMED)
                     && !cfg.showPassive) return false;
+
+            if (cfg.maxRange > 0 && viewer != null
+                    && entity.distanceToSqr(viewer) > cfg.maxRange * cfg.maxRange) return false;
         }
 
         if (cfg.onlyShowDamaged && entity.getHealth() >= entity.getMaxHealth()) return false;

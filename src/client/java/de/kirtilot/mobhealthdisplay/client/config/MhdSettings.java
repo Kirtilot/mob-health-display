@@ -21,6 +21,8 @@ public final class MhdSettings {
             new BoolSetting("showSelf", "Show Yourself", () -> MhdConfig.get().showSelf, v -> MhdConfig.get().showSelf = v),
             new BoolSetting("onlyShowDamaged", "Only Damaged", () -> MhdConfig.get().onlyShowDamaged, v -> MhdConfig.get().onlyShowDamaged = v),
             new BoolSetting("showBarCount", "Bar Count", () -> MhdConfig.get().showBarCount, v -> MhdConfig.get().showBarCount = v),
+            new BoolSetting("showCountPrefix", "Count Prefix", () -> MhdConfig.get().showCountPrefix, v -> MhdConfig.get().showCountPrefix = v),
+            new BoolSetting("showDividers", "Divider Lines", () -> MhdConfig.get().showDividers, v -> MhdConfig.get().showDividers = v),
             new BoolSetting("blackList", "Blacklist", () -> MhdConfig.get().blackList, v -> MhdConfig.get().blackList = v),
             new BoolSetting("whiteList", "Whitelist", () -> MhdConfig.get().whiteList, v -> MhdConfig.get().whiteList = v)
     );
@@ -28,6 +30,7 @@ public final class MhdSettings {
     public static final List<FloatSetting> FLOATS = List.of(
             new FloatSetting("height", "Height Offset", () -> MhdConfig.get().height, v -> MhdConfig.get().height = v, -2f, 2f, 0.05f, null),
             new FloatSetting("heartRows", "Heart Rows", () -> MhdConfig.get().heartRows, v -> MhdConfig.get().heartRows = v, 1f, 5f, 1f, null),
-            new FloatSetting("hideAfterSeconds", "Hide After (s)", () -> MhdConfig.get().hideAfterSeconds, v -> MhdConfig.get().hideAfterSeconds = v, 0f, 60f, 1f, "Off")
+            new FloatSetting("hideAfterSeconds", "Hide After (s)", () -> MhdConfig.get().hideAfterSeconds, v -> MhdConfig.get().hideAfterSeconds = v, 0f, 60f, 1f, "Off"),
+            new FloatSetting("maxRange", "Max Range", () -> MhdConfig.get().maxRange, v -> MhdConfig.get().maxRange = v, 0f, 128f, 1f, "Unlimited")
     );
 }

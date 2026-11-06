@@ -12,6 +12,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
+import de.kirtilot.mobhealthdisplay.client.config.MhdConfig;
 
 /** Draws the heart rows as textured quads facing the camera, growing upwards like the player HUD. */
 public final class HeartRenderer {
@@ -20,6 +21,8 @@ public final class HeartRenderer {
     private static final int HEART_STEP = 8;         // hearts overlap by 1 pixel, like the vanilla HUD
     private static final int ROW_STEP = 10;          // vertical distance between heart rows
     private static final int COUNT_LINE = 10;        // height of the "x5" line below the hearts
+    private static final int DIVIDER_HEIGHT = 3;     // height of the lines left and right of "x5"
+    private static final int DIVIDER_GAP = 3;        // space between the lines and the text
     private static final double BOTTOM_LIFT = 0.3;   // fixed gap between the name tag point and the lower edge
     private static final float LAYER_OFFSET = 0.01f; // draws hearts in front of the containers
 
@@ -43,6 +46,7 @@ public final class HeartRenderer {
         int columns = Math.min(layout.totalSlots(), HeartLayout.HEARTS_PER_ROW);
         int heartsHeight = (rows - 1) * ROW_STEP + HEART_SIZE;
         int totalHeight = heartsHeight + (showCount ? COUNT_LINE : 0);
+        float rowWidth = columns * HEART_STEP + 1;
 
         poseStack.pushPose();
         // the lower edge stays fixed, everything is built upwards from there
@@ -51,7 +55,7 @@ public final class HeartRenderer {
         poseStack.scale(SCALE, -SCALE, SCALE);
 
         int top = -totalHeight; // y grows downwards here, so negative values are above the lower edge
-        Grid grid = new Grid(-(columns * HEART_STEP + 1) / 2f, top, rows);
+        Grid grid = new Grid(-rowWidth / 2f, top, rows);
 
         submitIcons(collector, poseStack, design.container(), grid, 0, layout.totalSlots(), 0f, light);
         submitIcons(collector, poseStack, design.full(), grid, 0, layout.fullHearts(), LAYER_OFFSET, light);
@@ -61,13 +65,36 @@ public final class HeartRenderer {
 
         if (showCount) {
             Font font = Minecraft.getInstance().font;
-            String text = "x" + layout.barCount();
-            collector.submitText(poseStack, -font.width(text) / 2f, top + heartsHeight + 1,
+            String text = (MhdConfig.get().showCountPrefix ? "x" : "") + layout.barCount();
+            int textWidth = font.width(text);
+            float textX = -textWidth / 2f;
+            float textY = top + heartsHeight + 1;
+
+            collector.submitText(poseStack, textX, textY,
                     Component.literal(text).getVisualOrderText(), false, Font.DisplayMode.NORMAL,
                     light, 0xFFFFFFFF, 0, 0);
+
+            if (MhdConfig.get().showDividers && design.divider() != null) {
+                submitDividers(collector, poseStack, design.divider(), -rowWidth / 2f, rowWidth / 2f,
+                        textX, textX + textWidth, textY + 3, light);
+            }
         }
 
         poseStack.popPose();
+    }
+
+    /** Lines from the left edge of the heart row to the text, and from the text to the right edge. */
+    private static void submitDividers(SubmitNodeCollector collector, PoseStack poseStack, Identifier texture,
+                                       float rowLeft, float rowRight, float textLeft, float textRight,
+                                       float y, int light) {
+        float leftEnd = textLeft - DIVIDER_GAP;
+        float rightStart = textRight + DIVIDER_GAP - 1; // the font adds 1 pixel of spacing after the last letter
+        if (leftEnd - rowLeft < 2) return; // not enough space for lines
+
+        collector.submitCustomGeometry(poseStack, RenderTypes.text(texture), (pose, buffer) -> {
+            quad(buffer, pose, rowLeft, y, leftEnd, y + DIVIDER_HEIGHT, 0f, light);
+            quad(buffer, pose, rightStart, y, rowRight, y + DIVIDER_HEIGHT, 0f, light);
+        });
     }
 
     private static void submitIcons(SubmitNodeCollector collector, PoseStack poseStack, Identifier texture,

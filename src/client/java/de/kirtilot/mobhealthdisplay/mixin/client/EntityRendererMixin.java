@@ -18,12 +18,17 @@ import net.minecraft.world.entity.EntityAttachment;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(EntityRenderer.class)
 public abstract class EntityRendererMixin {
+
+    /** Extra space between a rider's hearts and the hearts of the mob it rides. */
+    @Unique
+    private static final double RIDER_GAP = 0.6;
 
     // Phase 1: collect data (health, filter result, position, design)
     @Inject(method = "extractRenderState", at = @At("TAIL"))
@@ -39,6 +44,16 @@ public abstract class EntityRendererMixin {
 
         Vec3 anchor = entity.getAttachments().getNullable(EntityAttachment.NAME_TAG, 0, entity.getYRot(partialTicks));
         if (anchor == null) return;
+
+        // ridden mob: move its hearts above the rider, so they don't end up inside the rider
+        Entity rider = entity.getFirstPassenger();
+        if (rider != null) {
+            Vec3 riderTop = rider.getAttachments().getNullable(EntityAttachment.NAME_TAG, 0, rider.getYRot(partialTicks));
+            if (riderTop != null) {
+                double top = rider.getY() - entity.getY() + riderTop.y + RIDER_GAP;
+                anchor = new Vec3(anchor.x, Math.max(anchor.y, top), anchor.z);
+            }
+        }
 
         MhdConfig cfg = MhdConfig.get();
         double extra = cfg.height + (state.nameTag != null ? 0.3 : 0.0); // move above a visible name
