@@ -4,6 +4,8 @@ import de.kirtilot.mobhealthdisplay.client.texture.HeartDesign;
 import de.kirtilot.mobhealthdisplay.client.texture.HeartType;
 import net.minecraft.world.phys.Vec3;
 
+import java.util.List;
+
 /** Extra data we attach to every entity render state. */
 public interface HealthRenderState {
     HeartLayout mhd$getLayout();
@@ -14,4 +16,6 @@ public interface HealthRenderState {
     void mhd$setDesign(HeartDesign design);
     HeartType mhd$getHeartType();
     void mhd$setHeartType(HeartType type);
+    List<LossAnimator.LostHeart> mhd$getLostHearts();
+    void mhd$setLostHearts(List<LossAnimator.LostHeart> lostHearts);
 }

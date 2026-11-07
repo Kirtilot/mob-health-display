@@ -104,7 +104,7 @@ public class MhdConfigScreen extends Screen {
     @Override
     protected void init() {
         int contentHeight = switch (tab) {
-            case GENERAL -> (rows(MhdSettings.BOOLEANS.size()) + rows(MhdSettings.FLOATS.size())) * ROW;
+            case GENERAL -> rows(MhdSettings.SCREEN_ORDER.size()) * ROW;
             case LISTS, DESIGNS -> 2 * ROW + LIST_ROWS * LIST_ROW;
         };
         // title + tabs + content + bottom buttons
@@ -144,18 +144,17 @@ public class MhdConfigScreen extends Screen {
     // ---------- General tab ----------
 
     private void buildGeneralTab(int left, int y) {
-        List<MhdSettings.BoolSetting> bools = MhdSettings.BOOLEANS;
-        for (int i = 0; i < bools.size(); i++) {
-            MhdSettings.BoolSetting s = bools.get(i);
-            addRenderableWidget(CycleButton.onOffBuilder(s.get().get())
-                    .create(columnX(left, i), y + (i / COLUMNS) * ROW, BUTTON_WIDTH, 20,
-                            Component.literal(s.label()), (button, value) -> s.set().accept(value)));
-        }
-        y += rows(bools.size()) * ROW;
-
-        List<MhdSettings.FloatSetting> floats = MhdSettings.FLOATS;
-        for (int i = 0; i < floats.size(); i++) {
-            addRenderableWidget(new SettingSlider(columnX(left, i), y + (i / COLUMNS) * ROW, BUTTON_WIDTH, 20, floats.get(i)));
+        List<MhdSettings.Setting> settings = MhdSettings.SCREEN_ORDER;
+        for (int i = 0; i < settings.size(); i++) {
+            int x = columnX(left, i);
+            int rowY = y + (i / COLUMNS) * ROW;
+            if (settings.get(i) instanceof MhdSettings.BoolSetting s) {
+                addRenderableWidget(CycleButton.onOffBuilder(s.get().get())
+                        .create(x, rowY, BUTTON_WIDTH, 20,
+                                Component.literal(s.label()), (button, value) -> s.set().accept(value)));
+            } else if (settings.get(i) instanceof MhdSettings.FloatSetting s) {
+                addRenderableWidget(new SettingSlider(x, rowY, BUTTON_WIDTH, 20, s));
+            }
         }
     }
 

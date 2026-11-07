@@ -1,7 +1,7 @@
 {
   "default": "vanilla",
   "categories": {
-    "player": "player",
+    "player": "vanilla",
     "undead": "undead",
     "hostile": "hostile",
     "passive": "passive",

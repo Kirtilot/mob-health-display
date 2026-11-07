@@ -22,13 +22,6 @@ import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.client.Minecraft;
-import de.kirtilot.mobhealthdisplay.client.filter.EffectDetector;
-import de.kirtilot.mobhealthdisplay.mixin.client.LivingEntityAccessor;
-import net.minecraft.core.particles.ColorParticleOption;
-import net.minecraft.core.particles.ParticleOptions;
-import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.LivingEntity;
 
 import java.util.Arrays;
 import java.util.List;
@@ -96,33 +89,6 @@ public final class MhdCommands {
 
             root.then(literal("config").executes(ctx -> {
                 MhdKeybinds.requestConfigScreen();
-                return 1;
-            }));
-
-            // TEMP: Daten-Test für 0.4 – später wieder entfernen
-            root.then(literal("debug").executes(ctx -> {
-                Minecraft mc = Minecraft.getInstance();
-                if (mc.player == null) return 0;
-                ctx.getSource().sendFeedback(Component.literal(
-                        "poison=" + Integer.toHexString(MobEffects.POISON.value().getColor())
-                                + " wither=" + Integer.toHexString(MobEffects.WITHER.value().getColor())));
-                for (LivingEntity e : mc.player.level().getEntitiesOfClass(LivingEntity.class,
-                        mc.player.getBoundingBox().inflate(10), e -> true)) {
-                    StringBuilder particles = new StringBuilder();
-                    for (ParticleOptions p : e.getEntityData().get(LivingEntityAccessor.mhd$effectParticles())) {
-                        particles.append(BuiltInRegistries.PARTICLE_TYPE.getKey(p.getType()));
-                        if (p instanceof ColorParticleOption c) {
-                            particles.append(String.format("(%02x%02x%02x)",
-                                    Math.round(c.getRed() * 255), Math.round(c.getGreen() * 255), Math.round(c.getBlue() * 255)));
-                        }
-                        particles.append(" ");
-                    }
-                    ctx.getSource().sendFeedback(Component.literal(
-                            e.getType().toShortString()
-                                    + " | hp=" + e.getHealth()
-                                    + " | type=" + EffectDetector.of(e)
-                                    + " | particles=" + (particles.isEmpty() ? "-" : particles.toString().trim())));
-                }
                 return 1;
             }));
 

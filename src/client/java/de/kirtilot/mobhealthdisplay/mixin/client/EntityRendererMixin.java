@@ -4,9 +4,11 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import de.kirtilot.mobhealthdisplay.client.config.MhdConfig;
 import de.kirtilot.mobhealthdisplay.client.filter.EffectDetector;
 import de.kirtilot.mobhealthdisplay.client.filter.EntityFilter;
+import de.kirtilot.mobhealthdisplay.client.filter.HealthReader;
 import de.kirtilot.mobhealthdisplay.client.render.HealthRenderState;
 import de.kirtilot.mobhealthdisplay.client.render.HeartLayout;
 import de.kirtilot.mobhealthdisplay.client.render.HeartRenderer;
+import de.kirtilot.mobhealthdisplay.client.render.LossAnimator;
 import de.kirtilot.mobhealthdisplay.client.texture.HeartDesign;
 import de.kirtilot.mobhealthdisplay.client.texture.HeartDesignManager;
 import de.kirtilot.mobhealthdisplay.client.texture.HeartType;
@@ -24,7 +26,8 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import de.kirtilot.mobhealthdisplay.client.filter.HealthReader;
+
+import java.util.List;
 
 @Mixin(EntityRenderer.class)
 public abstract class EntityRendererMixin {
@@ -41,6 +44,7 @@ public abstract class EntityRendererMixin {
         hs.mhd$setHeartAnchor(null);
         hs.mhd$setDesign(null);
         hs.mhd$setHeartType(null);
+        hs.mhd$setLostHearts(null);
 
         if (!(entity instanceof LivingEntity living)) return;
         if (living.isInvisible()) return;
@@ -62,11 +66,15 @@ public abstract class EntityRendererMixin {
         MhdConfig cfg = MhdConfig.get();
         double extra = cfg.height + (state.nameTag != null ? 0.3 : 0.0); // move above a visible name
 
+        float health = HealthReader.health(living);
+        int rows = Math.round(cfg.heartRows);
         float absorption = cfg.showAbsorption ? living.getAbsorptionAmount() : 0f; // the client only knows it for players
-        hs.mhd$setLayout(HeartLayout.of(HealthReader.health(living), living.getMaxHealth(), absorption, Math.round(cfg.heartRows)));
+        hs.mhd$setLayout(HeartLayout.of(health, living.getMaxHealth(), absorption, rows));
         hs.mhd$setHeartAnchor(anchor.add(0, extra, 0));
         hs.mhd$setDesign(HeartDesignManager.get(living));
         hs.mhd$setHeartType(cfg.showEffects ? EffectDetector.of(living) : HeartType.NORMAL);
+        List<LossAnimator.LostHeart> lost = LossAnimator.update(living, health, rows); // always update, so the state stays current
+        hs.mhd$setLostHearts(cfg.showDamageAnimation ? lost : List.of());
     }
 
     // Phase 2: draw
@@ -78,8 +86,9 @@ public abstract class EntityRendererMixin {
         Vec3 anchor = hs.mhd$getHeartAnchor();
         HeartDesign design = hs.mhd$getDesign();
         HeartType type = hs.mhd$getHeartType();
-        if (layout == null || anchor == null || design == null || type == null) return;
+        List<LossAnimator.LostHeart> lost = hs.mhd$getLostHearts();
+        if (layout == null || anchor == null || design == null || type == null || lost == null) return;
 
-        HeartRenderer.submit(layout, design, type, anchor, MhdConfig.get().showBarCount, poseStack, collector, camera, state.lightCoords);
+        HeartRenderer.submit(layout, design, type, lost, anchor, MhdConfig.get().showBarCount, poseStack, collector, camera, state.lightCoords);
     }
 }

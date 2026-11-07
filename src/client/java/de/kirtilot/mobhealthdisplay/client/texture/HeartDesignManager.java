@@ -6,9 +6,12 @@ import com.google.gson.JsonParser;
 import de.kirtilot.mobhealthdisplay.client.filter.EntityCategory;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.world.entity.LivingEntity;
 
+import java.io.DataInputStream;
+import java.io.InputStream;
 import java.io.Reader;
 import java.util.Collections;
 import java.util.HashMap;
@@ -34,6 +37,8 @@ public final class HeartDesignManager {
     private static final Map<String, HeartDesign> DESIGNS = new HashMap<>();
     private static final Set<String> AVAILABLE = new TreeSet<>();
     private static final Map<String, Set<String>> FILES = new HashMap<>(); // design name -> its png files
+    private static final Map<String, Map<String, Integer>> LOST_FRAMES = new HashMap<>(); // design -> "lost.png" -> frames
+    private static final int HEART_SIZE = 9;
 
     private HeartDesignManager() {}
 
@@ -45,11 +50,13 @@ public final class HeartDesignManager {
         DESIGNS.clear();
         AVAILABLE.clear();
         FILES.clear();
+        LOST_FRAMES.clear();
         AVAILABLE.add(HeartDesign.VANILLA_NAME);
 
         // textures/designs/<name>/<file>.png -> remember the file for design <name>
         // a design with a full.png is available
-        manager.listResources("textures/designs", id -> id.getPath().endsWith(".png")).keySet().forEach(id -> {
+        // *lost.png -> also remember how many 9x9 frames the strip has
+        manager.listResources("textures/designs", id -> id.getPath().endsWith(".png")).forEach((id, resource) -> {
             if (!id.getNamespace().equals(MOD_ID)) return;
             String path = id.getPath();
             int slash = path.lastIndexOf('/');
@@ -58,6 +65,10 @@ public final class HeartDesignManager {
             String file = path.substring(slash + 1);
             FILES.computeIfAbsent(name, n -> new HashSet<>()).add(file);
             if (file.equals("full.png")) AVAILABLE.add(name);
+            if (file.endsWith("lost.png")) {
+                int frames = pngHeight(resource) / HEART_SIZE;
+                if (frames > 0) LOST_FRAMES.computeIfAbsent(name, n -> new HashMap<>()).put(file, frames);
+            }
         });
 
         manager.getResource(FILE).ifPresent(resource -> {
@@ -109,7 +120,19 @@ public final class HeartDesignManager {
     }
 
     public static HeartDesign design(String name) {
-        return DESIGNS.computeIfAbsent(name, n -> HeartDesign.named(n, FILES.getOrDefault(n, Set.of())));
+        return DESIGNS.computeIfAbsent(name, n -> HeartDesign.named(n,
+                FILES.getOrDefault(n, Set.of()), LOST_FRAMES.getOrDefault(n, Map.of())));
+    }
+
+    /** Reads the image height from the PNG header (bytes 20-23), or 0 if that fails. */
+    private static int pngHeight(Resource resource) {
+        try (InputStream in = resource.open(); DataInputStream data = new DataInputStream(in)) {
+            data.skipNBytes(20); // 8 signature + 4 length + 4 "IHDR" + 4 width
+            return data.readInt();
+        } catch (Exception e) {
+            System.err.println("[MobHealthDisplay] Could not read lost.png size: " + e);
+            return 0;
+        }
     }
 
     private static String firstAvailable(String... candidates) {
