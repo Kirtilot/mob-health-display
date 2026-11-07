@@ -64,6 +64,15 @@ public final class HeartRenderer {
             submitIcons(collector, poseStack, design.half(type), grid, layout.fullHearts(), 1, LAYER_OFFSET, light);
         }
 
+        // absorption hearts after the health slots; like vanilla they stay black while withered
+        HeartType absorptionType = type == HeartType.WITHERED ? HeartType.WITHERED : HeartType.ABSORBING;
+        int absorptionStart = layout.healthSlots();
+        submitIcons(collector, poseStack, design.full(absorptionType), grid, absorptionStart, layout.absorptionHearts(), LAYER_OFFSET, light);
+        if (layout.absorptionHalf()) {
+            submitIcons(collector, poseStack, design.half(absorptionType), grid,
+                    absorptionStart + layout.absorptionHearts(), 1, LAYER_OFFSET, light);
+        }
+
         if (showCount) {
             Font font = Minecraft.getInstance().font;
             String text = (MhdConfig.get().showCountPrefix ? "x" : "") + layout.barCount();

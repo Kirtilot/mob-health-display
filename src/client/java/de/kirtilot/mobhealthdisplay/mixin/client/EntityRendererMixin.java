@@ -62,7 +62,8 @@ public abstract class EntityRendererMixin {
         MhdConfig cfg = MhdConfig.get();
         double extra = cfg.height + (state.nameTag != null ? 0.3 : 0.0); // move above a visible name
 
-        hs.mhd$setLayout(HeartLayout.of(HealthReader.health(living), living.getMaxHealth(), Math.round(cfg.heartRows)));
+        float absorption = cfg.showAbsorption ? living.getAbsorptionAmount() : 0f; // the client only knows it for players
+        hs.mhd$setLayout(HeartLayout.of(HealthReader.health(living), living.getMaxHealth(), absorption, Math.round(cfg.heartRows)));
         hs.mhd$setHeartAnchor(anchor.add(0, extra, 0));
         hs.mhd$setDesign(HeartDesignManager.get(living));
         hs.mhd$setHeartType(cfg.showEffects ? EffectDetector.of(living) : HeartType.NORMAL);

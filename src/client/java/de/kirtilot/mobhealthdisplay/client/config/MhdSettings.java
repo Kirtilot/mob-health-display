@@ -24,6 +24,7 @@ public final class MhdSettings {
             new BoolSetting("showCountPrefix", "Count Prefix", () -> MhdConfig.get().showCountPrefix, v -> MhdConfig.get().showCountPrefix = v),
             new BoolSetting("showDividers", "Divider Lines", () -> MhdConfig.get().showDividers, v -> MhdConfig.get().showDividers = v),
             new BoolSetting("showEffects", "Effect Hearts", () -> MhdConfig.get().showEffects, v -> MhdConfig.get().showEffects = v),
+            new BoolSetting("showAbsorption", "Absorption", () -> MhdConfig.get().showAbsorption, v -> MhdConfig.get().showAbsorption = v),
             new BoolSetting("blackList", "Blacklist", () -> MhdConfig.get().blackList, v -> MhdConfig.get().blackList = v),
             new BoolSetting("whiteList", "Whitelist", () -> MhdConfig.get().whiteList, v -> MhdConfig.get().whiteList = v)
     );

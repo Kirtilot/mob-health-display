@@ -31,6 +31,7 @@ public class MhdConfig {
     public boolean showCountPrefix = false; // "x5" instead of "5"
     public boolean showDividers = true;     // lines left and right of the count
     public boolean showEffects = true;      // poisoned / withered / frozen hearts
+    public boolean showAbsorption = true;   // golden hearts (players only)
     public float height = 0.0f;
     public float heartRows = 1.0f;
     public float hideAfterSeconds = 0.0f; // 0 = never hide
