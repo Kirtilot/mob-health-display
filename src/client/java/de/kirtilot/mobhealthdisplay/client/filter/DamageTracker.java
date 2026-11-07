@@ -18,7 +18,7 @@ public final class DamageTracker {
 
     /** Called every frame for every visible living entity. */
     public static void update(LivingEntity entity) {
-        float health = entity.getHealth();
+        float health = HealthReader.health(entity);
         Entry old = ENTRIES.get(entity);
         if (old == null) {
             ENTRIES.put(entity, new Entry(health, entity.hurtTime > 0 ? now() : 0L));

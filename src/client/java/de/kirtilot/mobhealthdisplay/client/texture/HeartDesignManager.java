@@ -33,7 +33,7 @@ public final class HeartDesignManager {
     private static final Map<String, String> ENTITIES = new HashMap<>();
     private static final Map<String, HeartDesign> DESIGNS = new HashMap<>();
     private static final Set<String> AVAILABLE = new TreeSet<>();
-    private static final Set<String> DIVIDERS = new HashSet<>(); // designs that have a divider.png
+    private static final Map<String, Set<String>> FILES = new HashMap<>(); // design name -> its png files
 
     private HeartDesignManager() {}
 
@@ -44,22 +44,20 @@ public final class HeartDesignManager {
         ENTITIES.clear();
         DESIGNS.clear();
         AVAILABLE.clear();
-        DIVIDERS.clear();
+        FILES.clear();
         AVAILABLE.add(HeartDesign.VANILLA_NAME);
 
-        // textures/designs/<name>/full.png    -> <name> is an available design
-        // textures/designs/<name>/divider.png -> <name> has divider lines
-        manager.listResources("textures/designs",
-                id -> id.getPath().endsWith("/full.png") || id.getPath().endsWith("/divider.png")
-        ).keySet().forEach(id -> {
+        // textures/designs/<name>/<file>.png -> remember the file for design <name>
+        // a design with a full.png is available
+        manager.listResources("textures/designs", id -> id.getPath().endsWith(".png")).keySet().forEach(id -> {
             if (!id.getNamespace().equals(MOD_ID)) return;
             String path = id.getPath();
-            String name = path.substring(DESIGN_FOLDER.length(), path.lastIndexOf('/'));
-            if (path.endsWith("/full.png")) {
-                AVAILABLE.add(name);
-            } else {
-                DIVIDERS.add(name);
-            }
+            int slash = path.lastIndexOf('/');
+            if (slash < DESIGN_FOLDER.length()) return; // png directly in textures/designs, not in a design folder
+            String name = path.substring(DESIGN_FOLDER.length(), slash);
+            String file = path.substring(slash + 1);
+            FILES.computeIfAbsent(name, n -> new HashSet<>()).add(file);
+            if (file.equals("full.png")) AVAILABLE.add(name);
         });
 
         manager.getResource(FILE).ifPresent(resource -> {
@@ -111,7 +109,7 @@ public final class HeartDesignManager {
     }
 
     public static HeartDesign design(String name) {
-        return DESIGNS.computeIfAbsent(name, n -> HeartDesign.named(n, DIVIDERS.contains(n)));
+        return DESIGNS.computeIfAbsent(name, n -> HeartDesign.named(n, FILES.getOrDefault(n, Set.of())));
     }
 
     private static String firstAvailable(String... candidates) {

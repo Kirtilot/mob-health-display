@@ -5,7 +5,9 @@
   "compatibilityLevel": "JAVA_25",
   "client": [
     "EntityRenderStateMixin",
-    "EntityRendererMixin"
+    "EntityRendererMixin",
+    "LivingEntityAccessor",
+    "LivingEntityMixin"
   ],
   "injectors": {
     "defaultRequire": 1

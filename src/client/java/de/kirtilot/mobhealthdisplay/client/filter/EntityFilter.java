@@ -45,7 +45,7 @@ public class EntityFilter {
                     && entity.distanceToSqr(viewer) > cfg.maxRange * cfg.maxRange) return false;
         }
 
-        if (cfg.onlyShowDamaged && entity.getHealth() >= entity.getMaxHealth()) return false;
+        if (cfg.onlyShowDamaged && HealthReader.health(entity) >= entity.getMaxHealth()) return false;
         if (cfg.hideAfterSeconds > 0 && !DamageTracker.damagedWithin(entity, cfg.hideAfterSeconds)) return false;
 
         String id = BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()).toString();

@@ -2,12 +2,14 @@ package de.kirtilot.mobhealthdisplay.mixin.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import de.kirtilot.mobhealthdisplay.client.config.MhdConfig;
+import de.kirtilot.mobhealthdisplay.client.filter.EffectDetector;
 import de.kirtilot.mobhealthdisplay.client.filter.EntityFilter;
 import de.kirtilot.mobhealthdisplay.client.render.HealthRenderState;
 import de.kirtilot.mobhealthdisplay.client.render.HeartLayout;
 import de.kirtilot.mobhealthdisplay.client.render.HeartRenderer;
 import de.kirtilot.mobhealthdisplay.client.texture.HeartDesign;
 import de.kirtilot.mobhealthdisplay.client.texture.HeartDesignManager;
+import de.kirtilot.mobhealthdisplay.client.texture.HeartType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRenderer;
@@ -22,6 +24,7 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import de.kirtilot.mobhealthdisplay.client.filter.HealthReader;
 
 @Mixin(EntityRenderer.class)
 public abstract class EntityRendererMixin {
@@ -37,6 +40,7 @@ public abstract class EntityRendererMixin {
         hs.mhd$setLayout(null);
         hs.mhd$setHeartAnchor(null);
         hs.mhd$setDesign(null);
+        hs.mhd$setHeartType(null);
 
         if (!(entity instanceof LivingEntity living)) return;
         if (living.isInvisible()) return;
@@ -58,9 +62,10 @@ public abstract class EntityRendererMixin {
         MhdConfig cfg = MhdConfig.get();
         double extra = cfg.height + (state.nameTag != null ? 0.3 : 0.0); // move above a visible name
 
-        hs.mhd$setLayout(HeartLayout.of(living.getHealth(), living.getMaxHealth(), Math.round(cfg.heartRows)));
+        hs.mhd$setLayout(HeartLayout.of(HealthReader.health(living), living.getMaxHealth(), Math.round(cfg.heartRows)));
         hs.mhd$setHeartAnchor(anchor.add(0, extra, 0));
         hs.mhd$setDesign(HeartDesignManager.get(living));
+        hs.mhd$setHeartType(cfg.showEffects ? EffectDetector.of(living) : HeartType.NORMAL);
     }
 
     // Phase 2: draw
@@ -71,8 +76,9 @@ public abstract class EntityRendererMixin {
         HeartLayout layout = hs.mhd$getLayout();
         Vec3 anchor = hs.mhd$getHeartAnchor();
         HeartDesign design = hs.mhd$getDesign();
-        if (layout == null || anchor == null || design == null) return;
+        HeartType type = hs.mhd$getHeartType();
+        if (layout == null || anchor == null || design == null || type == null) return;
 
-        HeartRenderer.submit(layout, design, anchor, MhdConfig.get().showBarCount, poseStack, collector, camera, state.lightCoords);
+        HeartRenderer.submit(layout, design, type, anchor, MhdConfig.get().showBarCount, poseStack, collector, camera, state.lightCoords);
     }
 }

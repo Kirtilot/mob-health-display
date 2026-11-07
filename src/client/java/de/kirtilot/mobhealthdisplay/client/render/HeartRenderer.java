@@ -13,6 +13,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 import de.kirtilot.mobhealthdisplay.client.config.MhdConfig;
+import de.kirtilot.mobhealthdisplay.client.texture.HeartType;
 
 /** Draws the heart rows as textured quads facing the camera, growing upwards like the player HUD. */
 public final class HeartRenderer {
@@ -39,7 +40,7 @@ public final class HeartRenderer {
         }
     }
 
-    public static void submit(HeartLayout layout, HeartDesign design, Vec3 anchor, boolean showBarCount, PoseStack poseStack,
+    public static void submit(HeartLayout layout, HeartDesign design, HeartType type, Vec3 anchor, boolean showBarCount, PoseStack poseStack,
                               SubmitNodeCollector collector, CameraRenderState camera, int light) {
         boolean showCount = showBarCount && layout.barCount() > 1;
         int rows = layout.rowCount();
@@ -58,9 +59,9 @@ public final class HeartRenderer {
         Grid grid = new Grid(-rowWidth / 2f, top, rows);
 
         submitIcons(collector, poseStack, design.container(), grid, 0, layout.totalSlots(), 0f, light);
-        submitIcons(collector, poseStack, design.full(), grid, 0, layout.fullHearts(), LAYER_OFFSET, light);
+        submitIcons(collector, poseStack, design.full(type), grid, 0, layout.fullHearts(), LAYER_OFFSET, light);
         if (layout.halfHeart()) {
-            submitIcons(collector, poseStack, design.half(), grid, layout.fullHearts(), 1, LAYER_OFFSET, light);
+            submitIcons(collector, poseStack, design.half(type), grid, layout.fullHearts(), 1, LAYER_OFFSET, light);
         }
 
         if (showCount) {
