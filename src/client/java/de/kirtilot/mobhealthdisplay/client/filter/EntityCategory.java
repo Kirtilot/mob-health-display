@@ -5,6 +5,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.TamableAnimal;
+import net.minecraft.world.entity.animal.equine.AbstractHorse;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
 
@@ -25,6 +26,7 @@ public enum EntityCategory {
         EntityType<?> type = entity.getType();
         if (BOSSES.contains(type)) return BOSS;
         if (entity instanceof TamableAnimal pet && pet.isTame()) return TAMED;
+        if (entity instanceof AbstractHorse horse && horse.isTamed()) return TAMED; // horses, donkeys, llamas, camels, ...
         if (entity.is(EntityTypeTags.UNDEAD)) return UNDEAD;
         if (entity instanceof Enemy) return HOSTILE;
         return PASSIVE;
