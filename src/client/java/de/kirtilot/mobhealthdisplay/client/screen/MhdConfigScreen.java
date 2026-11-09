@@ -40,7 +40,10 @@ public class MhdConfigScreen extends Screen {
     private static final int CONTENT_WIDTH = PANEL_WIDTH - 2 * PADDING;
     private static final int TAB_WIDTH = (CONTENT_WIDTH - 2 * GAP) / 3;
 
-    private static final int LIST_ROWS = 7;      // visible rows, scroll with the mouse wheel
+    private static final int MAX_LIST_ROWS = 7;  // visible list rows on a big screen, scroll with the mouse wheel
+    private static final int MIN_LIST_ROWS = 2;  // never fewer, even on a tiny screen
+    private static final int SCREEN_MARGIN = 4;  // free space above and below the panel
+    private static final int FIXED_HEIGHT = PADDING + 14 + ROW + GAP + GAP + 20 + PADDING; // title, tabs, bottom buttons
     private static final int LIST_ROW = 22;      // height of one list row
     private static final int TOGGLE_WIDTH = 50;
     private static final int DESIGN_BUTTON_WIDTH = 110;
@@ -67,6 +70,10 @@ public class MhdConfigScreen extends Screen {
     private int panelLeft;
     private int panelTop;
     private int panelHeight;
+    private int listRows = MAX_LIST_ROWS; // visible rows of the list tabs, depends on the screen height
+    private int generalRows;              // visible setting rows of the General tab
+    private int generalScroll;            // first visible setting row of the General tab
+    private int contentTop;
 
     // all living entity types, sorted by display name
     private final List<String> allEntityIds = new ArrayList<>();
@@ -103,9 +110,16 @@ public class MhdConfigScreen extends Screen {
 
     @Override
     protected void init() {
+        // the content shrinks (and scrolls) when the screen is too small for everything
+        int available = this.height - 2 * SCREEN_MARGIN - FIXED_HEIGHT;
+        int totalRows = rows(MhdSettings.SCREEN_ORDER.size());
+        generalRows = Math.max(1, Math.min(totalRows, available / ROW));
+        generalScroll = Math.max(0, Math.min(generalScroll, totalRows - generalRows));
+        listRows = Math.max(MIN_LIST_ROWS, Math.min(MAX_LIST_ROWS, (available - 2 * ROW) / LIST_ROW));
+
         int contentHeight = switch (tab) {
-            case GENERAL -> rows(MhdSettings.SCREEN_ORDER.size()) * ROW;
-            case LISTS, DESIGNS -> 2 * ROW + LIST_ROWS * LIST_ROW;
+            case GENERAL -> generalRows * ROW;
+            case LISTS, DESIGNS -> 2 * ROW + listRows * LIST_ROW;
         };
         // title + tabs + content + bottom buttons
         panelHeight = PADDING + 14 + ROW + GAP + contentHeight + GAP + 20 + PADDING;
@@ -119,6 +133,7 @@ public class MhdConfigScreen extends Screen {
         addTabButton(Tab.LISTS, "Lists", left + TAB_WIDTH + GAP, y);
         addTabButton(Tab.DESIGNS, "Designs", left + 2 * (TAB_WIDTH + GAP), y);
         y += ROW + GAP;
+        contentTop = y;
 
         rowToggles.clear();
         rowDesigns.clear();
@@ -145,9 +160,11 @@ public class MhdConfigScreen extends Screen {
 
     private void buildGeneralTab(int left, int y) {
         List<MhdSettings.Setting> settings = MhdSettings.SCREEN_ORDER;
-        for (int i = 0; i < settings.size(); i++) {
+        int from = generalScroll * COLUMNS;
+        int to = Math.min(settings.size(), from + generalRows * COLUMNS);
+        for (int i = from; i < to; i++) {
             int x = columnX(left, i);
-            int rowY = y + (i / COLUMNS) * ROW;
+            int rowY = y + (i / COLUMNS - generalScroll) * ROW;
             if (settings.get(i) instanceof MhdSettings.BoolSetting s) {
                 addRenderableWidget(CycleButton.onOffBuilder(s.get().get())
                         .create(x, rowY, BUTTON_WIDTH, 20,
@@ -178,7 +195,7 @@ public class MhdConfigScreen extends Screen {
         listLeft = left;
         listTop = y;
         int toggleX = left + CONTENT_WIDTH - SCROLLBAR - 2 - TOGGLE_WIDTH;
-        for (int i = 0; i < LIST_ROWS; i++) {
+        for (int i = 0; i < listRows; i++) {
             final int row = i;
             rowToggles.add(addRenderableWidget(CycleButton.onOffBuilder(false)
                     .displayOnlyValue()
@@ -234,7 +251,7 @@ public class MhdConfigScreen extends Screen {
         values.addAll(HeartDesignManager.availableDesigns());
 
         int buttonX = designButtonX();
-        for (int i = 0; i < LIST_ROWS; i++) {
+        for (int i = 0; i < listRows; i++) {
             final int row = i;
             rowDesigns.add(addRenderableWidget(CycleButton.<String>builder(MhdConfigScreen::designLabel, PACK_DEFAULT)
                     .withValues(values)
@@ -352,18 +369,18 @@ public class MhdConfigScreen extends Screen {
         return entityNames.get(key);
     }
 
-    private static int clampScroll(int scroll, int size) {
-        return Math.max(0, Math.min(scroll, size - LIST_ROWS));
+    private int clampScroll(int scroll, int size) {
+        return Math.max(0, Math.min(scroll, size - listRows));
     }
 
     private void extractList(GuiGraphicsExtractor graphics) {
-        int listHeight = LIST_ROWS * LIST_ROW;
+        int listHeight = listRows * LIST_ROW;
         int right = listLeft + CONTENT_WIDTH;
         int trackX = right - SCROLLBAR;
 
         graphics.fill(listLeft, listTop, right, listTop + listHeight, LIST_BACKGROUND);
 
-        for (int i = 0; i < LIST_ROWS; i++) {
+        for (int i = 0; i < listRows; i++) {
             int index = scroll + i;
             if (index >= shownIds.size()) break;
             String key = shownIds.get(index);
@@ -391,9 +408,9 @@ public class MhdConfigScreen extends Screen {
 
         // scrollbar
         graphics.fill(trackX, listTop, right, listTop + listHeight, SCROLL_TRACK);
-        if (shownIds.size() > LIST_ROWS) {
-            int thumbHeight = Math.max(10, listHeight * LIST_ROWS / shownIds.size());
-            int thumbY = listTop + (listHeight - thumbHeight) * scroll / (shownIds.size() - LIST_ROWS);
+        if (shownIds.size() > listRows) {
+            int thumbHeight = Math.max(10, listHeight * listRows / shownIds.size());
+            int thumbY = listTop + (listHeight - thumbHeight) * scroll / (shownIds.size() - listRows);
             graphics.fill(trackX, thumbY, right, thumbY + thumbHeight, SCROLL_THUMB);
         }
     }
@@ -401,10 +418,20 @@ public class MhdConfigScreen extends Screen {
     @Override
     public boolean mouseScrolled(double x, double y, double scrollX, double scrollY) {
         boolean overList = x >= listLeft && x < listLeft + CONTENT_WIDTH
-                && y >= listTop && y < listTop + LIST_ROWS * LIST_ROW;
+                && y >= listTop && y < listTop + listRows * LIST_ROW;
         if (tab != Tab.GENERAL && overList) {
             scroll += scrollY > 0 ? -1 : 1;
             refreshRows();
+            return true;
+        }
+        int totalRows = rows(MhdSettings.SCREEN_ORDER.size());
+        boolean overPanel = x >= panelLeft && x < panelLeft + PANEL_WIDTH && y >= panelTop && y < panelTop + panelHeight;
+        if (tab == Tab.GENERAL && overPanel && totalRows > generalRows) {
+            int newScroll = Math.max(0, Math.min(generalScroll + (scrollY > 0 ? -1 : 1), totalRows - generalRows));
+            if (newScroll != generalScroll) {
+                generalScroll = newScroll;
+                rebuildWidgets();
+            }
             return true;
         }
         return super.mouseScrolled(x, y, scrollX, scrollY);
@@ -419,8 +446,22 @@ public class MhdConfigScreen extends Screen {
                 panelLeft + (PANEL_WIDTH - titleWidth) / 2, panelTop + PADDING, TITLE_COLOR, false);
         if (tab != Tab.GENERAL) {
             extractList(graphics);
+        } else {
+            extractGeneralScrollbar(graphics);
         }
         super.extractRenderState(graphics, mouseX, mouseY, a); // buttons on top
+    }
+
+    /** Thin scrollbar in the right border of the panel, only when not all settings fit. */
+    private void extractGeneralScrollbar(GuiGraphicsExtractor graphics) {
+        int totalRows = rows(MhdSettings.SCREEN_ORDER.size());
+        if (totalRows <= generalRows) return;
+        int x = panelLeft + PADDING + CONTENT_WIDTH + 1;
+        int trackHeight = generalRows * ROW - GAP;
+        int thumbHeight = Math.max(10, trackHeight * generalRows / totalRows);
+        int thumbY = contentTop + (trackHeight - thumbHeight) * generalScroll / (totalRows - generalRows);
+        graphics.fill(x, contentTop, x + 3, contentTop + trackHeight, SCROLL_TRACK);
+        graphics.fill(x, thumbY, x + 3, thumbY + thumbHeight, SCROLL_THUMB);
     }
 
     private void addTabButton(Tab target, String name, int x, int y) {
@@ -463,7 +504,7 @@ public class MhdConfigScreen extends Screen {
 
     @Override
     public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
-        extractBlurredBackground(graphics);
+        super.extractBackground(graphics, mouseX, mouseY, a); // like vanilla: panorama without a world, then blur
         graphics.blitSprite(RenderPipelines.GUI_TEXTURED, PANEL, panelLeft, panelTop, PANEL_WIDTH, panelHeight);
     }
 
