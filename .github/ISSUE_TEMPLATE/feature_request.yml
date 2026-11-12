@@ -1,0 +1,29 @@
+name: Feature request
+description: Suggest an idea or improvement
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for your idea! Please check the existing issues first, maybe someone already suggested it.
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like?
+      description: Describe the feature or change you have in mind.
+    validations:
+      required: true
+  - type: textarea
+    id: reason
+    attributes:
+      label: Why would it be useful?
+      description: In which situation would it help you?
+    validations:
+      required: false
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else?
+      description: Screenshots, sketches, examples from other mods, ...
+    validations:
+      required: false

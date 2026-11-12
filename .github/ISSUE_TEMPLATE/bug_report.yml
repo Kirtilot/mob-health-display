@@ -1,0 +1,71 @@
+name: Bug report
+description: Something doesn't work as it should
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! Please fill out the fields below as well as you can.
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: A clear description of the bug. Screenshots or videos help a lot.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: How can the bug be triggered?
+      placeholder: |
+        1. Spawn a zombie
+        2. Give it poison
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+    validations:
+      required: false
+  - type: input
+    id: mod-version
+    attributes:
+      label: Mob Health Display version
+      placeholder: e.g. 1.0.0
+    validations:
+      required: true
+  - type: input
+    id: mc-version
+    attributes:
+      label: Minecraft version
+      placeholder: e.g. 26.3
+    validations:
+      required: true
+  - type: dropdown
+    id: world
+    attributes:
+      label: Where did it happen?
+      options:
+        - Singleplayer
+        - Multiplayer server
+        - Both
+    validations:
+      required: true
+  - type: textarea
+    id: mods
+    attributes:
+      label: Other mods, resource packs or shaders
+      description: List the other mods, resource packs and shader packs you use, or write "none".
+    validations:
+      required: false
+  - type: textarea
+    id: log
+    attributes:
+      label: Log or crash report
+      description: If the game crashed or showed errors, paste `logs/latest.log` or the crash report here (or a link to it, e.g. from mclo.gs).
+      render: text
+    validations:
+      required: false
