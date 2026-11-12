@@ -1,5 +1,5 @@
 {
-  "key.category.mob_health_display.main": "Mob Health Display",
-  "key.mob_health_display.toggle": "Toggle Mob Health Display",
+  "key.category.mob_health_display.main": "Mob Heart Display",
+  "key.mob_health_display.toggle": "Toggle Mob Heart Display",
   "key.mob_health_display.open_config": "Open Settings"
 }

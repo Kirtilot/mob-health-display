@@ -95,7 +95,7 @@ public class MhdConfigScreen extends Screen {
     private Button whitelistButton;
 
     public MhdConfigScreen(Screen parent) {
-        super(Component.literal("Mob Health Display"));
+        super(Component.literal("Mob Heart Display"));
         this.parent = parent;
 
         for (EntityType<?> type : BuiltInRegistries.ENTITY_TYPE) {

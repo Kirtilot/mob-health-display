@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "id": "mob_health_display",
   "version": "${version}",
-  "name": "Mob Health Display",
+  "name": "Mob Heart Display",
   "description": "Shows a heart bar above mobs, just like the player's own health bar.",
   "authors": ["Kirtilot"],
   "contact": {
-    "homepage": "https://modrinth.com/mod/mob-health-display",
+    "homepage": "https://modrinth.com/mod/mob-heart-display",
     "sources": "https://github.com/Kirtilot/mob-health-display",
     "issues": "https://github.com/Kirtilot/mob-health-display/issues"
   },

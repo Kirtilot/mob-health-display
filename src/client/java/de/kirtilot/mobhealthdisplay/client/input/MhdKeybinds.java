@@ -46,7 +46,7 @@ public final class MhdKeybinds {
                 Component state = cfg.showHearts
                         ? Component.literal("ON").withStyle(ChatFormatting.GREEN)
                         : Component.literal("OFF").withStyle(ChatFormatting.RED);
-                client.player.sendOverlayMessage(Component.literal("Mob Health Display: ").append(state));
+                client.player.sendOverlayMessage(Component.literal("Mob Heart Display: ").append(state));
             }
         }
 

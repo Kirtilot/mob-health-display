@@ -1,6 +1,8 @@
-# Mob Health Display
+# Mob Heart Display
 
 A client-side Fabric mod that shows a heart bar above mobs, just like your own health bar.
+
+<!-- Screenshot: replace with an image from the repo, e.g. ![Hearts above mobs](docs/screenshot.png) -->
 
 ## Features
 
@@ -27,7 +29,7 @@ A client-side Fabric mod that shows a heart bar above mobs, just like your own h
 ## Installation
 
 1. Install Fabric Loader for Minecraft 26.3.
-2. Put `mob-health-display-<version>.jar` and Fabric API into your `mods` folder.
+2. Put `mob-heart-display-<version>.jar` and Fabric API into your `mods` folder.
 3. Start the game.
 
 ## Usage

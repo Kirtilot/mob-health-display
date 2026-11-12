@@ -233,7 +233,7 @@ public final class MhdCommands {
     // ---------- helpers ----------
 
     private static int listAll(CommandContext<FabricClientCommandSource> ctx) {
-        ctx.getSource().sendFeedback(Component.literal("Mob Health Display settings:").withStyle(ChatFormatting.YELLOW));
+        ctx.getSource().sendFeedback(Component.literal("Mob Heart Display settings:").withStyle(ChatFormatting.YELLOW));
         for (BoolSetting s : BOOL_SETTINGS) showValue(ctx, s.name(), s.get().get());
         for (FloatSetting s : FLOAT_SETTINGS) showValue(ctx, s.name(), s.get().get());
         showValue(ctx, "blackList entries", MhdConfig.get().blackListEntries);
